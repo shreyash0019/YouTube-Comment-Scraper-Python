@@ -1,38 +1,41 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 import csv
 import time
-from selenium import webdriver
 
-# Initialize the WebDriver
+# Initialize WebDriver
 driver = webdriver.Chrome(r"C:/Users/hp/Anaconda3/chromedriver.exe")
 
-# Open YouTube video
-driver.get('https://www.youtube.com/watch?v=iFPMz36std4')
+# Open the YouTube video
+video_url = 'https://www.youtube.com/watch?v=iFPMz36std4'
+driver.get(video_url)
 
 # Scroll to load comments
 driver.execute_script('window.scrollTo(1, 500);')
 time.sleep(5)
 driver.execute_script('window.scrollTo(1, 3000);')
+time.sleep(5)  # wait more to load additional comments
 
-# Find and extract comments
-username_elems = driver.find_elements_by_xpath('//*[@id="author-text"]')
-comment_elems = driver.find_elements_by_xpath('//*[@id="content-text"]')
+# Extract usernames and comments
+username_elems = driver.find_elements(By.XPATH, '//*[@id="author-text"]')
+comment_elems = driver.find_elements(By.XPATH, '//*[@id="content-text"]')
 
 # Collect data
 items = []
 for username, comment in zip(username_elems, comment_elems):
     item = {
-        'Author': username.text,
-        'Comment': comment.text
+        'Author': username.text.strip(),
+        'Comment': comment.text.strip()
     }
     items.append(item)
 
-# Write data to CSV file
+# Save to CSV
 filename = 'C:/Users/hp/Desktop/commentlist.csv'
 with open(filename, 'w', newline='', encoding='utf-8') as f:
-    w = csv.DictWriter(f, ['Author', 'Comment'])
-    w.writeheader()
+    writer = csv.DictWriter(f, fieldnames=['Author', 'Comment'])
+    writer.writeheader()
     for item in items:
-        w.writerow(item)
+        writer.writerow(item)
 
-# Close the WebDriver
+# Close browser
 driver.quit()
